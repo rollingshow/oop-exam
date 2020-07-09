@@ -6,76 +6,76 @@
     ---------------------------------------
 */
 
-std::ostream &operator<<(std::ostream &output, const Matrix &object)
+std::ostream &operator<<(std::ostream &output, Matrix &object)
 {
     int i, j;
-    for (i = 0; i < object.cols; i++)
+    for (i = 0; i < object.get_cols(); i++)
     {
-        for (j = 0; j < object.rows; j++)
-            output << object.data[i][j] << " ";
+        for (j = 0; j < object.get_rows(); j++)
+            output << object.get_data(i, j) << " ";
         output << std::endl;
     }
 
     return output;
 }
 
-Matrix Matrix::operator+(const Matrix &right)
+Matrix Matrix::operator+(Matrix &right)
 {
     // Проверка матриц на соответствие размеров
-    if (right.rows != rows || right.cols != cols)
+    if (right.get_rows() != get_rows() || right.get_cols() != get_cols())
     {
         std::cerr << "Unequal matrix sizes in Matrix::operator+()";
         exit(-4);
     }
 
     // Суммирование
-    double **result = summarize(data, rows, cols, right.data, right.rows, right.cols, '+');
+    double **result = summarize(get_data(), get_rows(), get_cols(), right.get_data(), right.get_rows(), right.get_cols(), '+');
 
     // Возврат результата
-    return Matrix(result, rows, cols);
+    return Matrix(result, get_rows(), get_cols());
 }
 
-Matrix Matrix::operator-(const Matrix &right)
+Matrix Matrix::operator-(Matrix &right)
 {
     // Проверка матриц на соответствие размеров
-    if (right.rows != rows || right.cols != cols)
+    if (right.get_rows() != get_rows() || right.get_cols() != get_cols())
     {
         std::cerr << "Unequal matrix sizes in Matrix::operator-()";
         exit(-5);
     }
 
     // Суммирование
-    double **result = summarize(data, rows, cols, right.data, right.rows, right.cols, '-');
+    double **result = summarize(get_data(), get_rows(), get_cols(), right.get_data(), right.get_rows(), right.get_cols(), '-');
 
     // Возврат результата
-    return Matrix(result, rows, cols);
+    return Matrix(result, get_rows(), get_cols());
 }
 
-Matrix Matrix::operator*(const Matrix &right)
+Matrix Matrix::operator*(Matrix &right)
 {
     // Проверка матриц на соответствие размеров
-    if (right.rows != cols)
+    if (right.get_rows() != get_cols())
     {
         std::cerr << "Unequal matrix sizes in Matrix::operator*()";
         exit(-6);
     }
 
     // Умножение
-    double **result = multiply_matrix(data, rows, cols, right.data, right.rows, right.cols);
+    double **result = multiply_matrix(get_data(), get_rows(), get_cols(), right.get_data(), right.get_rows(), right.get_cols());
 
     // Возврат результата
-    return Matrix(result, rows, cols);
+    return Matrix(result, get_rows(), get_cols());
 }
 
-Matrix Matrix::operator/(const Matrix &right)
+Matrix Matrix::operator/(Matrix &right)
 {
     // Проверка матриц на соответствие размеров
-    if (right.rows != cols)
+    if (right.get_rows() != get_cols())
     {
         std::cerr << "Unequal matrix sizes in Matrix::operator/()";
         exit(-7);
     }
-    if (right.rows != right.cols)
+    if (right.get_rows() != right.get_cols())
     {
         std::cerr << "Wrong matrix size in Matrix::operator/()";
         exit(-7);
@@ -85,13 +85,13 @@ Matrix Matrix::operator/(const Matrix &right)
     invert_right = invert_right.get_invert();
 
     // Умножение
-    double **result = multiply_matrix(data, rows, cols, invert_right.data, invert_right.rows, invert_right.cols);
+    double **result = multiply_matrix(get_data(), get_rows(), get_cols(), invert_right.get_data(), invert_right.get_rows(), invert_right.get_cols());
 
     // Освобождение памяти
-    free_mem(invert_right.data, invert_right.rows);
+    free_mem(invert_right.get_data(), invert_right.get_rows());
 
     // Возврат результата
-    return Matrix(result, rows, cols);
+    return Matrix(result, get_rows(), get_cols());
 }
 
 /*  
@@ -103,44 +103,56 @@ Matrix Matrix::operator/(const Matrix &right)
 Matrix Matrix::get_invert()
 {
     // Проверка матрицы на квадратность
-    if (cols != rows)
+    if (get_cols() != get_rows())
     {
         std::cerr << "Wrong matrix size in Matrix::get_invert()";
         exit(-1);
     }
 
     // Рассчёт обратного коэффициента определителя
-    double d_coeff = (1 / (double)determinant(data, rows));
+    double d_coeff = (1 / (double)determinant(get_data(), get_rows()));
 
     // Поиск матрицы алгебраических дополнений
-    double **c_matrix = cofactor(data, rows);
+    double **c_matrix = cofactor(get_data(), get_rows());
 
     // Умножение матрицы алг.доп. на обр.коэф. определителя
-    double **result = multiply_number(c_matrix, rows, cols, d_coeff);
+    double **result = multiply_number(c_matrix, get_rows(), get_cols(), d_coeff);
 
     // Очистка выделенной памяти
-    free_mem(c_matrix, rows);
+    free_mem(c_matrix, get_rows());
 
     // Возврат результата
-    return Matrix(result, rows, cols);
+    return Matrix(result, get_rows(), get_cols());
 }
 
-int Matrix::get_determinant()
+double Matrix::get_determinant()
 {
     // Проверка матрицы на квадратность
-    if (cols != rows)
+    if (get_cols() != get_rows())
     {
         std::cerr << "Wrong matrix size in Matrix::get_determinant()";
         exit(-2);
     }
 
     // Возврат результата
-    return determinant(data, rows);
+    return determinant(get_data(), get_rows());
+}
+
+bool Matrix::is_degenerate()
+{
+    if (get_determinant() == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 /*  
     ---------------------------------------
-    Конструкторы и деструкторы
+    Конструкторы
     ---------------------------------------
 */
 
@@ -153,22 +165,46 @@ Matrix::Matrix(double **array, int array_rows, int array_cols)
         exit(-3);
     }
 
-    data = array;
-    rows = array_rows;
-    cols = array_cols;
+    double **temp = new double *[array_rows];
+    for (int i = 0; i < array_rows; i++)
+    {
+        temp[i] = new double[array_cols];
+        for (int j = 0; j < array_cols; j++)
+        {
+            temp[i][j] = array[i][j];
+        }
+    }
+
+    set_data(temp);
+    set_rows(array_rows);
+    set_cols(array_cols);
 }
 
 Matrix::Matrix()
 {
-    data = nullptr;
-    rows = 0;
-    cols = 0;
+    set_data(nullptr);
+    set_rows(0);
+    set_cols(0);
 }
 
-Matrix::~Matrix()
-{
-    free_mem(data, rows);
-}
+// Matrix::Matrix(const Matrix &source)
+// {
+    // double **temp = new double *[source.get_rows()];
+    // for (int i = 0; i < source.get_rows(); i++)
+    // {
+    //     temp[i] = new double[source.get_cols()];
+    //     for (int j = 0; j < source.get_cols(); j++)
+    //     {
+    //         temp[i][j] = source.get_data(i, j);
+    //     }
+    // }
+
+//     int temp_r = source.get_rows(), temp_c = source.get_cols();  
+
+//     set_data(temp);
+//     set_rows(temp_r);
+//     set_cols(temp_c);
+// }
 
 /*  
     ---------------------------------------
@@ -176,9 +212,10 @@ Matrix::~Matrix()
     ---------------------------------------
 */
 
-int Matrix::determinant(double **matrix, int size)
+double Matrix::determinant(double **matrix, int size)
 {
-    int d = 0, k = 1;
+    double d = 0;
+    int k = 1;
 
     if (size == 1)
     {
@@ -275,18 +312,18 @@ double **Matrix::transponate(double **matrix, int size)
     return new_matrix;
 }
 
-double **Matrix::multiply_number(double **matrix, int rows, int cols, double num)
+double **Matrix::multiply_number(double **matrix, int r, int c, double num)
 {
     double **new_matrix;
-    new_matrix = new double *[cols];
-    for (int l = 0; l < cols; l++)
+    new_matrix = new double *[c];
+    for (int l = 0; l < c; l++)
     {
-        new_matrix[l] = new double[rows];
+        new_matrix[l] = new double[r];
     }
 
-    for (int i = 0; i < cols; i++)
+    for (int i = 0; i < c; i++)
     {
-        for (int j = 0; j < rows; j++)
+        for (int j = 0; j < r; j++)
         {
             new_matrix[i][j] = matrix[i][j] * num;
         }
@@ -368,7 +405,7 @@ double **Matrix::cofactor(double **matrix, int size)
         for (int j = 0; j < size; j++)
         {
             double **m_matrix = isolate(t_matrix, i, j, size);
-            int determ = determinant(m_matrix, size - 1);
+            double determ = determinant(m_matrix, size - 1);
             c_matrix[i][j] = k * determ;
 
             // Очистка выделенной памяти
@@ -394,4 +431,104 @@ void Matrix::free_mem(double **array, int array_rows)
         delete[] array[i];
     }
     delete[] array;
+}
+
+/*  
+    ---------------------------------------
+    Сеттеры и геттеры
+    ---------------------------------------
+*/
+
+void Matrix::set_data(int i, int j, double value)
+{
+    if (i < get_rows() && i >= 0 && j < get_cols() && j >= 0)
+    {
+        data[i][j] = value;
+    }
+    else
+    {
+        std::cerr << "Wrong position in Matrix::set_data()";
+        return;
+    }
+}
+
+void Matrix::set_data(double **array)
+{
+    data = array;
+}
+
+void Matrix::set_cols(int c)
+{
+    cols = c;
+}
+
+void Matrix::set_rows(int r)
+{
+    rows = r;
+}
+
+double Matrix::get_data(int i, int j)
+{
+    if (i < get_rows() && i >= 0 && j < get_cols() && j >= 0)
+    {
+        return data[i][j];
+    }
+    else
+    {
+        std::cerr << "Wrong position in Matrix::get_data()";
+        return 0;
+    }
+}
+
+double **Matrix::get_data()
+{
+    return data;
+}
+
+int Matrix::get_cols()
+{
+    return cols;
+}
+
+int Matrix::get_rows()
+{
+    return rows;
+}
+
+/*  
+    ---------------------------------------
+    Треугольная матрица
+    ---------------------------------------
+*/
+
+void Triangle_Matrix::set_data(int i, int j, double value){
+    this->Matrix::set_data(i, j, value);
+    triangulate();
+}
+
+void Triangle_Matrix::set_data(double** array){
+    this->Matrix::set_data(array);
+    triangulate();
+}
+
+void Triangle_Matrix::triangulate(){
+    if (get_cols() != get_rows())
+    {
+        std::cerr << "Wrong matrix size in Triangle_Matrix::triangulate()";
+        exit(-9);
+    }
+
+    for (int i = 0; i < get_rows(); i++){
+        for (int j = 0; j < get_rows(); j++){
+            if(polarity == 'u'){
+                if (j < i){
+                    this->Matrix::data[i][j] = 0.0;
+                }
+            } else {
+                if (j > i){
+                    this->Matrix::data[i][j] = 0.0;
+                }
+            }
+        }
+    }
 }

@@ -34,6 +34,8 @@ public:
     Matrix();
     // конструктор с массивом из указателей, высотой и шириной
     Matrix(double **, int, int);
+    // деструктор
+    ~Matrix();
 
     // вывод матрицы
     friend std::ostream &operator<<(std::ostream &, Matrix &);

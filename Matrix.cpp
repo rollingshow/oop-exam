@@ -188,6 +188,9 @@ Matrix::Matrix()
     set_cols(0);
 }
 
+Matrix::~Matrix(){
+    free_mem(data, rows);
+}
 /*  
     ---------------------------------------
     Приватные функции

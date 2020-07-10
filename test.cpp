@@ -38,6 +38,13 @@ int main()
     Matrix test_matrix2(b, b_size, b_size);
     Triangle_Matrix t2(b, b_size, b_size, 'l');
 
+    // Инициализация вектора
+    vector<double> vec{0, 1, 2, 3};
+    Matrix test_vector(vec, 'v');
+
+    cout << "Vector 1:" << endl
+         << test_vector;
+
     cout << "Matrix 1:" << endl
          << test_matrix;
     cout << "Triangle Matrix 1 (upper):" << endl
@@ -61,6 +68,10 @@ int main()
     // cout << "Matrix 1 - Matrix 2:" << endl;
     // Matrix test_matrix_sub = test_matrix - test_matrix2;
     // cout << test_matrix_sub;
+
+    cout << "Matrix 1 * Vector 1:" << endl;
+    Matrix test_vector_mul = test_matrix * test_vector;
+    cout << test_vector_mul;
 
     cout << "Matrix 1 * Matrix 2:" << endl;
     Matrix test_matrix_mul = test_matrix * test_matrix2;

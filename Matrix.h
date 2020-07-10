@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 class Matrix
 {
@@ -19,6 +20,8 @@ public:
     Matrix operator-(Matrix &right);
     Matrix operator*(Matrix &right);
     Matrix operator/(Matrix &right);
+
+    Matrix(std::vector<double>, char);
 
     // обратная матрица
     Matrix get_invert();

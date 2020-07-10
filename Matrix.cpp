@@ -9,9 +9,9 @@
 std::ostream &operator<<(std::ostream &output, Matrix &object)
 {
     int i, j;
-    for (i = 0; i < object.get_cols(); i++)
+    for (i = 0; i < object.get_rows(); i++)
     {
-        for (j = 0; j < object.get_rows(); j++)
+        for (j = 0; j < object.get_cols(); j++)
             output << object.get_data(i, j) << " ";
         output << std::endl;
     }
@@ -53,6 +53,7 @@ Matrix Matrix::operator-(Matrix &right)
 
 Matrix Matrix::operator*(Matrix &right)
 {
+    
     // Проверка матриц на соответствие размеров
     if (right.get_rows() != get_cols())
     {
@@ -64,7 +65,7 @@ Matrix Matrix::operator*(Matrix &right)
     double **result = multiply_matrix(get_data(), get_rows(), get_cols(), right.get_data(), right.get_rows(), right.get_cols());
 
     // Возврат результата
-    return Matrix(result, get_rows(), get_cols());
+    return Matrix(result, get_rows(), right.get_cols());
 }
 
 Matrix Matrix::operator/(Matrix &right)
@@ -186,25 +187,6 @@ Matrix::Matrix()
     set_rows(0);
     set_cols(0);
 }
-
-// Matrix::Matrix(const Matrix &source)
-// {
-    // double **temp = new double *[source.get_rows()];
-    // for (int i = 0; i < source.get_rows(); i++)
-    // {
-    //     temp[i] = new double[source.get_cols()];
-    //     for (int j = 0; j < source.get_cols(); j++)
-    //     {
-    //         temp[i][j] = source.get_data(i, j);
-    //     }
-    // }
-
-//     int temp_r = source.get_rows(), temp_c = source.get_cols();  
-
-//     set_data(temp);
-//     set_rows(temp_r);
-//     set_cols(temp_c);
-// }
 
 /*  
     ---------------------------------------
@@ -501,34 +483,90 @@ int Matrix::get_rows()
     ---------------------------------------
 */
 
-void Triangle_Matrix::set_data(int i, int j, double value){
+void Triangle_Matrix::set_data(int i, int j, double value)
+{
     this->Matrix::set_data(i, j, value);
     triangulate();
 }
 
-void Triangle_Matrix::set_data(double** array){
+void Triangle_Matrix::set_data(double **array)
+{
     this->Matrix::set_data(array);
     triangulate();
 }
 
-void Triangle_Matrix::triangulate(){
+void Triangle_Matrix::triangulate()
+{
     if (get_cols() != get_rows())
     {
         std::cerr << "Wrong matrix size in Triangle_Matrix::triangulate()";
         exit(-9);
     }
 
-    for (int i = 0; i < get_rows(); i++){
-        for (int j = 0; j < get_rows(); j++){
-            if(polarity == 'u'){
-                if (j < i){
+    for (int i = 0; i < get_rows(); i++)
+    {
+        for (int j = 0; j < get_rows(); j++)
+        {
+            if (polarity == 'u')
+            {
+                if (j < i)
+                {
                     this->Matrix::data[i][j] = 0.0;
                 }
-            } else {
-                if (j > i){
+            }
+            else
+            {
+                if (j > i)
+                {
                     this->Matrix::data[i][j] = 0.0;
                 }
             }
         }
     }
+}
+
+//Конструктор для вектора
+Matrix::Matrix(std::vector<double> data, char orientation)
+{
+    int array_rows, array_cols;
+
+    if (orientation == 'v')
+    {
+        array_rows = data.size();
+        array_cols = 1;
+    }
+    else if (orientation == 'h')
+    {
+        array_rows = 1;
+        array_cols = data.size();
+    }
+    else
+    {
+        std::cerr << "Wrong vector orientation in Matrix::Matrix()";
+        exit(-10);
+    }
+
+    double **temp = new double *[array_rows];
+    for (int i = 0; i < array_rows; i++)
+    {
+        temp[i] = new double[array_cols];
+    }
+
+    int max = (array_rows > array_cols) ? array_rows : array_cols;
+
+    for (int i = 0; i < max; i++)
+    {
+        if (orientation == 'v')
+        {
+            temp[i][0] = data[i];
+        }
+        else if (orientation == 'h')
+        {
+            temp[0][i] = data[i];
+        }
+    }
+
+    set_data(temp);
+    set_rows(array_rows);
+    set_cols(array_cols);
 }
